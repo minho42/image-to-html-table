@@ -39,7 +39,7 @@ export default function Home() {
     try {
       const dataUrl = await readFileAsDataURL(file)
       const img = new Image()
-      img.src = dataUrl
+      img.src = dataUrl as string
       await img.decode()
 
       if (img.width > 450 || img.height > 450) {
