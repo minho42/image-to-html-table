@@ -88,10 +88,18 @@ export default function Home() {
   return (
     <main className="flex flex-col items-center justify-center gap-3 p-3">
       <h1 className="text-xl font-semibold">Convert image to HTML table</h1>
+      <a
+        className="underline"
+        title="https://github.com/minho42/image-to-html-table"
+        target="_blank"
+        rel="noopener noreferrer nofollow"
+        href="https://github.com/minho42/image-to-html-table"
+      >
+        Github
+      </a>
       <input onChange={handleChange} type="file" name="image" id="image" />
       <canvas className="hidden"></canvas>
       <div id="output"></div>
-
       <button
         onClick={handleCopy}
         hidden={html?.length === 0}
