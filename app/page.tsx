@@ -43,7 +43,7 @@ export default function Home() {
       await img.decode()
 
       if (img.width > 450 || img.height > 450) {
-        output.innerHTML = "Image too big. Try smaller image."
+        output.innerHTML = "Image too big. Try smaller image (< 450)."
         return
       }
       output.innerHTML = "Generating..."
