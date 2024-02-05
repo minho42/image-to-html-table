@@ -1,113 +1,110 @@
-import Image from "next/image";
+"use client"
+
+import { useState } from "react"
 
 export default function Home() {
+  const [html, setHtml] = useState("")
+  const [showCopyNotice, setShowCopyNotice] = useState(false)
+
+  function readFileAsDataURL(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(reader.result)
+      reader.onerror = reject
+      reader.readAsDataURL(file)
+    })
+  }
+  async function handleCopy() {
+    try {
+      await navigator.clipboard.writeText(html)
+      setShowCopyNotice(true)
+    } catch (error) {
+      console.log(error)
+      setShowCopyNotice(false)
+    }
+  }
+  async function handleChange(e) {
+    const output = document.querySelector("#output")
+
+    setHtml("")
+    output.innerHTML = ""
+
+    const file = e.target.files[0]
+    if (!file) {
+      console.log("no file")
+
+      return
+    }
+
+    try {
+      const dataUrl = await readFileAsDataURL(file)
+      const img = new Image()
+      img.src = dataUrl
+      await img.decode()
+
+      if (img.width > 450 || img.height > 450) {
+        output.innerHTML = "Image too big. Try smaller image."
+        return
+      }
+      output.innerHTML = "Generating..."
+
+      const canvas = document.querySelector("canvas")
+      canvas.width = img.width
+      canvas.height = img.height
+      const ctx = canvas.getContext("2d")
+      ctx.drawImage(img, 0, 0)
+      const imageData = ctx.getImageData(0, 0, img.width, img.height)
+      const data = imageData.data
+
+      let html = "<div><style>td { padding: 0; border:none; width:1px; height:1px }</style><table>"
+
+      for (let y = 0; y < img.height; y++) {
+        html += "<tr>"
+        for (let x = 0; x < img.width; x++) {
+          let i = (y * img.width + x) * 4
+          let r = data[i]
+          let g = data[i + 1]
+          let b = data[i + 2]
+          let a = data[i + 3]
+
+          let colorHex = `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b
+            .toString(16)
+            .padStart(2, "0")}`
+          html += `<td style="background-color:${colorHex};"></td>`
+        }
+        html += "</tr>"
+      }
+      html += "</table></div>"
+      setHtml(html)
+
+      output.innerHTML = "Done"
+    } catch (error) {
+      setHtml("")
+      console.log(error)
+      output.innerHTML = "Generating failed"
+    }
+  }
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+    <main className="flex flex-col items-center justify-center gap-3 p-3">
+      <h1 className="text-xl font-semibold">Convert image to HTML table</h1>
+      <input onChange={handleChange} type="file" name="image" id="image" />
+      <canvas className="hidden"></canvas>
+      <div id="output"></div>
+
+      <button
+        onClick={handleCopy}
+        hidden={html?.length === 0}
+        className="relative cursor-pointer border-2 border-black px-3 py-2 font-semibold "
+      >
+        Copy HTML table
+        <div
+          hidden={!showCopyNotice}
+          className="absolute -right-4 -top-4 rounded-xl bg-neutral-800 px-2 py-1 font-mono text-xs font-normal text-white"
+        >
+          Copied
         </div>
-      </div>
-
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-full sm:before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full sm:after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px] z-[-1]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50 text-balance`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
+      </button>
     </main>
-  );
+  )
 }
