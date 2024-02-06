@@ -2,9 +2,12 @@
 
 import { useState } from "react"
 
+const SIZE_LIMIT = 500
+
 export default function Home() {
   const [html, setHtml] = useState("")
-  const [showCopyNotice, setShowCopyNotice] = useState(false)
+  const [status, setStatus] = useState("")
+  const [isCopied, setIsCopied] = useState(false)
 
   function readFileAsDataURL(file) {
     return new Promise((resolve, reject) => {
@@ -17,17 +20,17 @@ export default function Home() {
   async function handleCopy() {
     try {
       await navigator.clipboard.writeText(html)
-      setShowCopyNotice(true)
+      setIsCopied(true)
     } catch (error) {
       console.log(error)
-      setShowCopyNotice(false)
+      setIsCopied(false)
     }
   }
-  async function handleChange(e) {
-    const output = document.querySelector("#output")
 
+  async function handleChange(e) {
     setHtml("")
-    output.innerHTML = ""
+    setIsCopied(false)
+    setStatus("")
 
     const file = e.target.files[0]
     if (!file) {
@@ -42,11 +45,11 @@ export default function Home() {
       img.src = dataUrl as string
       await img.decode()
 
-      if (img.width > 450 || img.height > 450) {
-        output.innerHTML = "Image too big. Try smaller image (< 450)."
+      if (img.width > SIZE_LIMIT || img.height > SIZE_LIMIT) {
+        setStatus(`Image too big. Try smaller image (< ${SIZE_LIMIT}).`)
         return
       }
-      output.innerHTML = "Generating..."
+      setStatus("Generating...")
 
       const canvas = document.querySelector("canvas")
       canvas.width = img.width
@@ -76,12 +79,11 @@ export default function Home() {
       }
       html += "</table></div>"
       setHtml(html)
-
-      output.innerHTML = "Done"
+      setStatus("Done")
     } catch (error) {
       setHtml("")
       console.log(error)
-      output.innerHTML = "Generating failed"
+      setStatus("Generating failed")
     }
   }
 
@@ -99,7 +101,7 @@ export default function Home() {
       </a>
       <input onChange={handleChange} type="file" name="image" id="image" />
       <canvas className="hidden"></canvas>
-      <div id="output"></div>
+      <div>{status}</div>
       <button
         onClick={handleCopy}
         hidden={html?.length === 0}
@@ -107,7 +109,7 @@ export default function Home() {
       >
         Copy HTML table
         <div
-          hidden={!showCopyNotice}
+          hidden={!isCopied}
           className="absolute -right-4 -top-4 rounded-xl bg-neutral-800 px-2 py-1 font-mono text-xs font-normal text-white"
         >
           Copied
