@@ -106,7 +106,7 @@ export default function Home() {
         hidden={html?.length === 0}
         className="relative cursor-pointer border-2 border-black px-3 py-2 font-semibold "
       >
-        Copy HTML table
+        Copy HTML
         <div
           hidden={!isCopied}
           className="absolute -right-4 -top-4 rounded-xl bg-neutral-800 px-2 py-1 font-mono text-xs font-normal text-white"
