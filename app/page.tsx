@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 
-const SIZE_LIMIT = 500
+const SIZE_LIMIT = 1000
 
 export default function Home() {
   const [html, setHtml] = useState("")
@@ -30,7 +30,7 @@ export default function Home() {
   async function handleChange(e) {
     setHtml("")
     setIsCopied(false)
-    setStatus("")
+    setStatus("Generating...")
 
     const file = e.target.files[0]
     if (!file) {
@@ -49,7 +49,6 @@ export default function Home() {
         setStatus(`Image too big. Try smaller image (< ${SIZE_LIMIT}).`)
         return
       }
-      setStatus("Generating...")
 
       const canvas = document.querySelector("canvas")
       canvas.width = img.width
