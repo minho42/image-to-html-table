@@ -35,7 +35,7 @@ export default function Home() {
     const file = e.target.files[0]
     if (!file) {
       console.log("no file")
-
+      setStatus("")
       return
     }
 
